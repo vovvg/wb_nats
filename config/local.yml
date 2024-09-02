@@ -1,0 +1,12 @@
+env: "local"
+server:
+  port: 8080
+database:
+  url: "postgres://postgres:postgres@localhost:5432/wb_nats"
+  schema: "wb_nats"
+  user: "postgres"
+  password: "postgres"
+nats:
+  url: "nats://nats:nats@localhost:8222"
+  user: "nats"
+  password: "nats"

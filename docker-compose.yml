@@ -1,0 +1,36 @@
+#version: "3.9"
+#
+#services:
+#  postgres:
+#    image: postgres
+#    environment:
+#      POSTGRES_DB: "wb_nats"
+#      POSTGRES_USER: "postgres"
+#      POSTGRES_PASSWORD: "postgres"
+#    ports:
+#      - "5432:5432"
+#    volumes:
+#      - data:/var/lib/postgresql/data
+#  nats:
+#    image: "nats-streaming:latest"
+#    restart: "always"
+
+version: '3.8'
+
+services:
+  nats-streaming-wb:
+    image: nats-streaming:latest
+    container_name: nats-streaming
+    ports:
+      - "4222:4222"
+      - "8222:8222"
+      - "6222:6222"
+    command: >
+      -p 4222
+      -m 8222
+      --cluster_id nats_wb
+      --store file
+      --dir /data/a
+      --cluster_node_id wb
+    volumes:
+      - ./data/a:/data/a
