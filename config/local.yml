@@ -10,3 +10,5 @@ nats:
   url: "nats://nats:nats@localhost:8222"
   user: "nats"
   password: "nats"
+  cluster_id: "nats_wb"
+  client_id: "wb_resp"

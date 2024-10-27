@@ -6,6 +6,8 @@ import (
 	"fmt"
 	"log"
 	"net/http"
+	"wb_nats/internal/handlers"
+	"wb_nats/internal/pkg/nats/listeners"
 	"wb_nats/internal/service"
 	"wb_nats/internal/storage/postgres"
 
@@ -30,21 +32,25 @@ func main() {
 	cfg := config.MustLoad()
 
 	dbPool, err := createDatabasePool(cfg)
-
 	if err != nil {
 		log.Fatal("failed to create database pool: %w", err)
 	}
 
+	storage := postgres.NewStorage(dbPool)
+	listener := listeners.NewListener(cfg)
+	services := service.NewService(storage, listener)
+	handler := handlers.NewHandlers(services)
+
 	//createNatsConnection(cfg)
 
-	sc, err := stan.Connect("nats_wb", "wb_resp")
+	sc, err := stan.Connect(cfg.Nats.ClusterId, cfg.Nats.ClientId)
 	if err != nil {
 		log.Fatal(err)
 	}
 	defer sc.Close()
 
 	if cfg.Env == "local" {
-		http.HandleFunc("POST /sendMessage", service.SendMessage)
+		http.HandleFunc("POST /sendMessage", handler.SendMessage)
 	}
 	//mux.HandleFunc("GET /products/{id}/reviews", service.GetReviews)
 
@@ -64,9 +70,6 @@ func main() {
 	if err := http.ListenAndServe("127.0.0.1:8080", nil); err != nil {
 		panic(err)
 	}
-
-	storage := postgres.NewStorage(dbPool)
-	log.Println(storage)
 }
 
 func insertDelivery(conn *pgxpool.Pool, deliveryMessage Delivery) error {

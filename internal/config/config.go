@@ -19,9 +19,11 @@ type DatabaseConfig struct {
 }
 
 type NatsConfig struct {
-	Url      string `yaml:"url"`
-	User     string `yaml:"user"`
-	Password string `yaml:"password"`
+	Url       string `yaml:"url"`
+	User      string `yaml:"user"`
+	Password  string `yaml:"password"`
+	ClusterId string `yaml:"cluster_id"`
+	ClientId  string `yaml:"client_id"`
 }
 
 func MustLoad() *Config {
