@@ -6,10 +6,10 @@ import (
 	"io"
 	"log"
 	"net/http"
-	schema "wb_nats/internal/shema"
+	"wb_nats/internal/schema"
 )
 
-func GetMessages(w http.ResponseWriter, r *http.Request) {
+func (s *Service) GetMessages(w http.ResponseWriter, r *http.Request) {
 
 	var request schema.Request
 
