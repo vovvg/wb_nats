@@ -12,3 +12,5 @@ nats:
   password: "nats"
   cluster_id: "nats_wb"
   client_id: "wb_resp"
+  producer_id: "wb_req"
+  subject: "wb"

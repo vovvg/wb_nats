@@ -1,10 +1,12 @@
 package service
 
-import "wb_nats/internal/schema"
+import (
+	"wb_nats/internal/schema"
+)
 
 type Storage interface {
 	InsertMessage(message schema.Request) error
-	GetMessage(orderUid string) error
+	GetMessage(orderId string) (schema.Request, error)
 }
 
 type Service struct {
@@ -18,10 +20,9 @@ func NewService(storage Storage) *Service {
 func (s *Service) SaveMessage(message schema.Request) error {
 
 	return s.storage.InsertMessage(message)
-
 }
 
-func (s *Service) GetMessage(orderUid string) error {
+func (s *Service) GetMessage(orderUid string) (schema.Request, error) {
 
 	return s.storage.GetMessage(orderUid)
 }

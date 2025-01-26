@@ -3,7 +3,6 @@ package handlers
 import (
 	"encoding/json"
 	"fmt"
-	"github.com/nats-io/stan.go"
 	"io"
 	"log"
 	"net/http"
@@ -12,26 +11,47 @@ import (
 
 type Service interface {
 	SaveMessage(message schema.Request) error
-	GetMessage(orderUid string) error
+	GetMessage(orderUid string) (schema.Request, error)
+}
+
+type Client interface {
+	SendMessage(message []byte)
 }
 
 type Handlers struct {
 	service Service
+	client  Client
 }
 
-func NewHandlers(service Service) *Handlers {
-	return &Handlers{service: service}
+func NewHandlers(service Service, client Client) *Handlers {
+	return &Handlers{service: service, client: client}
 }
 
-func (h *Handlers) SendMessage(w http.ResponseWriter, r *http.Request) {
+func (h *Handlers) GetMessage(w http.ResponseWriter, r *http.Request) {
+	orderId := r.PathValue("order_id")
 
-	sc, err := stan.Connect("nats_wb", "wb_req")
+	order, err := h.service.GetMessage(orderId)
 	if err != nil {
-		log.Println(err)
+		http.Error(w, err.Error(), http.StatusInternalServerError)
+	}
+
+	resp, err := json.Marshal(order)
+	if err != nil {
+		http.Error(w, err.Error(), http.StatusInternalServerError)
+
 		return
 	}
-	defer sc.Close()
 
+	w.Header().Set("Content-Type", "application/json")
+	_, errOut := fmt.Fprintf(w, string(resp))
+	if errOut != nil {
+		log.Printf("GET order/{order_id} out failed: %s", errOut.Error())
+
+		return
+	}
+}
+
+func (h *Handlers) SendTestMessage(w http.ResponseWriter, r *http.Request) {
 	var request schema.Request
 
 	body, _ := io.ReadAll(r.Body)
@@ -48,33 +68,5 @@ func (h *Handlers) SendMessage(w http.ResponseWriter, r *http.Request) {
 	}
 	log.Println(request)
 
-	err = sc.Publish("wb", body)
-	if err != nil {
-		log.Fatal(err)
-	}
-
-	log.Println("Сообщение отправлено")
-
-}
-
-func (h *Handlers) GetMessageFromNats(sc stan.Conn) (stan.Subscription, error) {
-	return sc.Subscribe("wb", func(m *stan.Msg) {
-		log.Printf("Received a message: %s\n", string(m.Data))
-		var message schema.Request
-		json.Unmarshal(m.Data, &message)
-
-		log.Println(message)
-
-		err := h.service.SaveMessage(message)
-		if err != nil {
-			log.Fatal(err)
-		}
-
-	}, stan.StartWithLastReceived())
-
-}
-
-// TODO: check that message was processed
-func (h *Handlers) isMessageProcessed(sequence uint64) bool {
-	return false
+	h.client.SendMessage(body)
 }

@@ -6,18 +6,14 @@ import (
 	"log"
 	"net/http"
 	"wb_nats/internal/handlers"
+	"wb_nats/internal/listeners/nats"
 	"wb_nats/internal/service"
 	"wb_nats/internal/storage/postgres"
 
 	"github.com/jackc/pgx/v5/pgxpool"
-	"github.com/nats-io/stan.go"
 	"github.com/xlab/closer"
 	"wb_nats/internal/config"
 )
-
-type Order struct {
-	OrderUid string `json:"order_uid"`
-}
 
 func main() {
 	cfg := config.MustLoad()
@@ -29,24 +25,26 @@ func main() {
 
 	storage := postgres.NewStorage(dbPool)
 	services := service.NewService(storage)
-	handler := handlers.NewHandlers(services)
+	listeners := nats.NewListeners(services)
+	clients := nats.NewClients(*cfg)
+	handler := handlers.NewHandlers(services, clients)
 
-	sc, err := stan.Connect(cfg.Nats.ClusterId, cfg.Nats.ClientId)
-	if err != nil {
-		log.Fatal(err)
-	}
+	sc := listeners.InitListener(*cfg)
 	defer sc.Close()
 
-	subscription, _ := handler.GetMessageFromNats(sc)
-
+	subscription, _ := listeners.ListenMessageFromNats(sc)
 	defer subscription.Close()
 
 	if cfg.Env == "dev" {
-		http.HandleFunc("POST /sendMessage", handler.SendMessage)
+		http.HandleFunc("POST /sendMessage", handler.SendTestMessage)
 	}
 
+	http.HandleFunc("GET /getMessage/{order_id}", handler.GetMessage)
+
 	log.Println("Service started")
-	if err := http.ListenAndServe("127.0.0.1:8080", nil); err != nil {
+
+	host := "127.0.0.1:" + cfg.Port
+	if err := http.ListenAndServe(host, nil); err != nil {
 		panic(err)
 	}
 }

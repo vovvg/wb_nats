@@ -8,6 +8,7 @@ import (
 
 type Config struct {
 	Env      string         `yaml:"env" env-default:"dev"`
+	Port     string         `yaml:"port" env-default:"8080"`
 	Database DatabaseConfig `yaml:"database"`
 	Nats     NatsConfig     `yaml:"nats"`
 }
@@ -19,11 +20,13 @@ type DatabaseConfig struct {
 }
 
 type NatsConfig struct {
-	Url       string `yaml:"url"`
-	User      string `yaml:"user"`
-	Password  string `yaml:"password"`
-	ClusterId string `yaml:"cluster_id"`
-	ClientId  string `yaml:"client_id"`
+	Url        string `yaml:"url"`
+	User       string `yaml:"user"`
+	Password   string `yaml:"password"`
+	ClusterId  string `yaml:"cluster_id"`
+	ClientId   string `yaml:"client_id"`
+	ProducerId string `yaml:"producer_id"`
+	Subject    string `yaml:"subject"`
 }
 
 func MustLoad() *Config {
