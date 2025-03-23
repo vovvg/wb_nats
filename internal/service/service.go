@@ -1,64 +1,28 @@
 package service
 
 import (
-	"encoding/json"
-	"fmt"
-	"github.com/nats-io/stan.go"
-	"io"
-	"log"
-	"net/http"
-	schema "wb_nats/internal/shema"
+	"wb_nats/internal/schema"
 )
 
-func SendMessage(w http.ResponseWriter, r *http.Request) {
-
-	sc, err := stan.Connect("nats_wb", "wb_req")
-	if err != nil {
-		log.Fatal(err)
-	}
-	defer sc.Close()
-
-	var request schema.Request
-
-	body, _ := io.ReadAll(r.Body)
-
-	if err := json.Unmarshal(body, &request); err != nil {
-		w.WriteHeader(http.StatusBadRequest)
-		w.Header().Set("Content-Type", "application/json")
-		_, errOut := fmt.Fprintf(w, "{\"message\":\"%s\"}", err)
-		if errOut != nil {
-			log.Printf("POST /sendMessage out failed: %s", errOut.Error())
-			return
-		}
-		return
-	}
-	log.Println(request)
-	// Публикуем сообщение
-	err = sc.Publish("wb", body)
-	if err != nil {
-		log.Fatal(err)
-	}
-
-	log.Println("Сообщение отправлено")
-
+type Storage interface {
+	InsertMessage(message schema.Request) error
+	GetMessage(orderId string) (schema.Request, error)
 }
 
-func GetMessages(w http.ResponseWriter, r *http.Request) {
+type Service struct {
+	storage Storage
+}
 
-	var request schema.Request
+func NewService(storage Storage) *Service {
+	return &Service{storage: storage}
+}
 
-	body, _ := io.ReadAll(r.Body)
+func (s *Service) SaveMessage(message schema.Request) error {
 
-	if err := json.Unmarshal(body, &request); err != nil {
-		w.WriteHeader(http.StatusBadRequest)
-		w.Header().Set("Content-Type", "application/json")
-		_, errOut := fmt.Fprintf(w, "{\"message\":\"%s\"}", err)
-		if errOut != nil {
-			log.Printf("POST /sendMessage out failed: %s", errOut.Error())
-			return
-		}
-		return
-	}
-	log.Println(request)
+	return s.storage.InsertMessage(message)
+}
 
+func (s *Service) GetMessage(orderUid string) (schema.Request, error) {
+
+	return s.storage.GetMessage(orderUid)
 }

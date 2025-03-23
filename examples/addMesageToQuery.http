@@ -2,7 +2,7 @@ POST http://127.0.0.1:8080/sendMessage
 Content-Type: application/json
 
 {
-  "order_uid": "b563feb7b2b84b6test",
+  "order_uid": "b563feb7b2b84b6test1",
   "track_number": "WBILMTESTTRACK",
   "entry": "WBIL",
   "delivery": {
@@ -45,8 +45,16 @@ Content-Type: application/json
   "internal_signature": "",
   "customer_id": "test",
   "delivery_service": "meest",
-  "shardkey": "9",
+  "shard_key": "9",
   "sm_id": 99,
   "date_created": "2021-11-26T06:22:19Z",
   "oof_shard": "1"
 }
+
+###
+
+# curl -X GET http://127.0.0.1:8080/order/b563feb7b2b84b6test
+GET http://127.0.0.1:8080/getMessage/b563feb7b2b84b6test1
+
+###
+

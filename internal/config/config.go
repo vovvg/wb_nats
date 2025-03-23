@@ -7,7 +7,8 @@ import (
 )
 
 type Config struct {
-	Env      string         `yaml:"env" env-default:"local"`
+	Env      string         `yaml:"env" env-default:"dev"`
+	Port     string         `yaml:"port" env-default:"8080"`
 	Database DatabaseConfig `yaml:"database"`
 	Nats     NatsConfig     `yaml:"nats"`
 }
@@ -19,26 +20,27 @@ type DatabaseConfig struct {
 }
 
 type NatsConfig struct {
-	Url      string `yaml:"url"`
-	User     string `yaml:"user"`
-	Password string `yaml:"password"`
+	Url        string `yaml:"url"`
+	User       string `yaml:"user"`
+	Password   string `yaml:"password"`
+	ClusterId  string `yaml:"cluster_id"`
+	ClientId   string `yaml:"client_id"`
+	ProducerId string `yaml:"producer_id"`
+	Subject    string `yaml:"subject"`
 }
 
 func MustLoad() *Config {
-	// Получаем путь до конфиг-файла из env-переменной CONFIG_PATH
 	configPath := os.Getenv("CONFIG_PATH")
 	if configPath == "" {
 		log.Fatal("CONFIG_PATH environment variable is not set")
 	}
 
-	// Проверяем существование конфиг-файла
 	if _, err := os.Stat(configPath); err != nil {
 		log.Fatalf("error opening config file: %s", err)
 	}
 
 	var cfg Config
 
-	// Читаем конфиг-файл и заполняем нашу структуру
 	err := cleanenv.ReadConfig(configPath, &cfg)
 	if err != nil {
 		log.Fatalf("error reading config file: %s", err)

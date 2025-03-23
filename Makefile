@@ -4,4 +4,4 @@ start-env:
 	docker-compose up -d
 
 migrate:
-	goose -dir migrations postgres "user=postgres dbname=wb_nats password=postgres sslmode=disable" up
+	goose -dir migrations postgres "postgres://postgres:postgrespw@localhost:5432/wb_nats?sslmode=disable" up

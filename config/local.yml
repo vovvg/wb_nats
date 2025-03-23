@@ -1,12 +1,16 @@
-env: "local"
+env: "dev"
 server:
   port: 8080
 database:
-  url: "postgres://postgres:postgres@localhost:5432/wb_nats"
+  url: "postgres://postgres:postgrespw@localhost:5432/wb_nats"
   schema: "wb_nats"
   user: "postgres"
-  password: "postgres"
+  password: "postgrespw"
 nats:
   url: "nats://nats:nats@localhost:8222"
   user: "nats"
   password: "nats"
+  cluster_id: "nats_wb"
+  client_id: "wb_resp"
+  producer_id: "wb_req"
+  subject: "wb"

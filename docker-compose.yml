@@ -1,23 +1,18 @@
-#version: "3.9"
-#
-#services:
-#  postgres:
-#    image: postgres
-#    environment:
-#      POSTGRES_DB: "wb_nats"
-#      POSTGRES_USER: "postgres"
-#      POSTGRES_PASSWORD: "postgres"
-#    ports:
-#      - "5432:5432"
-#    volumes:
-#      - data:/var/lib/postgresql/data
-#  nats:
-#    image: "nats-streaming:latest"
-#    restart: "always"
-
-version: '3.8'
-
 services:
+  postgres:
+    image: postgres:latest
+    environment:
+      POSTGRES_DB: "wb_nats"
+      POSTGRES_USER: "postgres"
+      POSTGRES_PASSWORD: "postgrespw"
+    ports:
+      - "5432:5432"
+    healthcheck:
+      test: [ "CMD-SHELL", "pg_isready -U postgres" ]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+
   nats-streaming-wb:
     image: nats-streaming:latest
     container_name: nats-streaming

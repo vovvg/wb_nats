@@ -1,51 +1,81 @@
 -- +goose Up
 -- +goose StatementBegin
 
-create table delivery
+-- Создание таблицы delivery перед request
+CREATE TABLE delivery
 (
-    id      serial primary key,
-    name    varchar(255) not null,
-    phone   varchar(255) not null,
-    zip     varchar(255) not null,
-    city    varchar(255) not null,
-    address varchar(255) not null,
-    region  varchar(255) not null,
-    email   varchar(255) not null
+    id      SERIAL PRIMARY KEY,
+    name    VARCHAR(255) NOT NULL,
+    phone   VARCHAR(255) NOT NULL,
+    zip     VARCHAR(255) NOT NULL,
+    city    VARCHAR(255) NOT NULL,
+    address VARCHAR(255) NOT NULL,
+    region  VARCHAR(255) NOT NULL,
+    email   VARCHAR(255) NOT NULL
 );
-create table payment
+
+-- Создание таблицы payment перед request
+CREATE TABLE payment
 (
-    id            serial primary key,
-    transaction   varchar(255) not null,
-    request_id    varchar(255) not null,
-    currency      varchar(255) not null,
-    provider      varchar(255) not null,
-    amount        numeric      not null,
-    payment_dt    date         not null,
-    bank          varchar(255) not null,
-    delivery_cost numeric      not null,
-    goods_total   numeric      not null,
-    custom_fee    numeric      not null
+    id            SERIAL PRIMARY KEY,
+    transaction   VARCHAR(255) NOT NULL,
+    request_id    VARCHAR(255) NOT NULL,
+    currency      VARCHAR(255) NOT NULL,
+    provider      VARCHAR(255) NOT NULL,
+    amount        NUMERIC      NOT NULL,
+    payment_dt    DATE         NOT NULL,
+    bank          VARCHAR(255) NOT NULL,
+    delivery_cost NUMERIC      NOT NULL,
+    goods_total   NUMERIC      NOT NULL,
+    custom_fee    NUMERIC      NOT NULL
 );
-create table items
+
+-- Создание таблицы request после зависимых таблиц
+CREATE TABLE request
 (
-    id           serial primary key,
-    chrt_id      numeric      not null,
-    track_number varchar(255) not null,
-    price        numeric      not null,
-    rid          varchar(255) not null,
-    name         varchar(255) not null,
-    sale         numeric      not null,
-    size         varchar(255) not null,
-    total_price  numeric      not null,
-    nm_id        numeric      not null,
-    brand        varchar(255) not null,
-    status       numeric      not null
+    id                 SERIAL PRIMARY KEY,
+    order_uid          VARCHAR(255) NOT NULL UNIQUE,
+    track_number       VARCHAR(255) NOT NULL,
+    entry              VARCHAR(255) NOT NULL,
+    locale             VARCHAR(50)  NOT NULL,
+    internal_signature VARCHAR(255),
+    customer_id        VARCHAR(255) NOT NULL,
+    delivery_service   VARCHAR(255) NOT NULL,
+    shard_key          VARCHAR(50)  NOT NULL,
+    sm_id              INT          NOT NULL,
+    date_created       TIMESTAMP    NOT NULL,
+    oof_shard          VARCHAR(50)  NOT NULL,
+    delivery_id        INT          NOT NULL,
+    payment_id         INT          NOT NULL,
+    CONSTRAINT fk_delivery FOREIGN KEY (delivery_id) REFERENCES delivery (id) ON DELETE CASCADE,
+    CONSTRAINT fk_payment FOREIGN KEY (payment_id) REFERENCES payment (id) ON DELETE CASCADE
 );
+
+-- Создание таблицы items
+CREATE TABLE items
+(
+    id           SERIAL PRIMARY KEY,
+    chrt_id      NUMERIC      NOT NULL,
+    track_number VARCHAR(255) NOT NULL,
+    price        NUMERIC      NOT NULL,
+    rid          VARCHAR(255) NOT NULL,
+    name         VARCHAR(255) NOT NULL,
+    sale         NUMERIC      NOT NULL,
+    size         VARCHAR(50)  NOT NULL,
+    total_price  NUMERIC      NOT NULL,
+    nm_id        NUMERIC      NOT NULL,
+    brand        VARCHAR(255) NOT NULL,
+    status       NUMERIC      NOT NULL,
+    request_id   INT          NOT NULL,
+    CONSTRAINT fk_request FOREIGN KEY (request_id) REFERENCES request (id) ON DELETE CASCADE
+);
+
 
 -- +goose StatementEnd
 
 -- +goose Down
 -- +goose StatementBegin
+DROP TABLE request;
 DROP TABLE delivery;
 DROP TABLE payment;
 DROP TABLE items;
